@@ -14,48 +14,30 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.Gaming.XboxGameBar;
 
 namespace XboxGameBarMusicPlayer
 {
-    /// <summary>
-    /// Обеспечивает зависящее от конкретного приложения поведение, дополняющее класс Application по умолчанию.
-    /// </summary>
     sealed partial class App : Application
     {
-        /// <summary>
-        /// Инициализирует одноэлементный объект приложения. Это первая выполняемая строка разрабатываемого
-        /// кода, поэтому она является логическим эквивалентом main() или WinMain().
-        /// </summary>
+        private XboxGameBarWidget _root = null;
         public App()
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }
 
-        /// <summary>
-        /// Вызывается при обычном запуске приложения пользователем. Будут использоваться другие точки входа,
-        /// например, если приложение запускается для открытия конкретного файла.
-        /// </summary>
-        /// <param name="e">Сведения о запросе и обработке запуска.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
-
-            // Не повторяйте инициализацию приложения, если в окне уже имеется содержимое,
-            // только обеспечьте активность окна
             if (rootFrame == null)
             {
-                // Создание фрейма, который станет контекстом навигации, и переход к первой странице
                 rootFrame = new Frame();
-
                 rootFrame.NavigationFailed += OnNavigationFailed;
-
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
                     //TODO: Загрузить состояние из ранее приостановленного приложения
                 }
-
-                // Размещение фрейма в текущем окне
                 Window.Current.Content = rootFrame;
             }
 
@@ -63,33 +45,55 @@ namespace XboxGameBarMusicPlayer
             {
                 if (rootFrame.Content == null)
                 {
-                    // Если стек навигации не восстанавливается для перехода к первой странице,
-                    // настройка новой страницы путем передачи необходимой информации в качестве параметра
-                    // навигации
                     rootFrame.Navigate(typeof(MainPage), e.Arguments);
                 }
-                // Обеспечение активности текущего окна
                 Window.Current.Activate();
             }
         }
 
-        /// <summary>
-        /// Вызывается в случае сбоя навигации на определенную страницу
-        /// </summary>
-        /// <param name="sender">Фрейм, для которого произошел сбой навигации</param>
-        /// <param name="e">Сведения о сбое навигации</param>
+        protected override void OnActivated(IActivatedEventArgs args)
+        {
+            XboxGameBarWidgetActivatedEventArgs widgetArgs = null;
+
+            if (args.Kind == ActivationKind.Protocol)
+            {
+                var protocolArgs = args as IProtocolActivatedEventArgs;
+                string protocolScheme = protocolArgs.Uri.Scheme;
+
+                if (protocolScheme.Equals("ms-gamebarwidget"))
+                {
+                    widgetArgs = args as XboxGameBarWidgetActivatedEventArgs;
+                }
+            }
+
+            if (widgetArgs != null)
+            {
+                if (widgetArgs.IsLaunchActivation)
+                {
+                    var rootFrame = new Frame();
+                    rootFrame.NavigationFailed += OnNavigationFailed;
+                    Window.Current.Content = rootFrame;
+
+                    _root = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
+                    rootFrame.Navigate(typeof(MainPage));
+
+                    Window.Current.Closed += RootClose;
+                    Window.Current.Activate();
+                }
+            }
+        }
+
+        private void RootClose(object sender, Windows.UI.Core.CoreWindowEventArgs e)
+        {
+            _root = null;
+            Window.Current.Closed -= RootClose;
+        }
+
         void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
-        /// <summary>
-        /// Вызывается при приостановке выполнения приложения.  Состояние приложения сохраняется
-        /// без учета информации о том, будет ли оно завершено или возобновлено с неизменным
-        /// содержимым памяти.
-        /// </summary>
-        /// <param name="sender">Источник запроса приостановки.</param>
-        /// <param name="e">Сведения о запросе приостановки.</param>
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();

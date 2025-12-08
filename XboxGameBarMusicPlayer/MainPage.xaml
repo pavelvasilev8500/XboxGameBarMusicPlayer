@@ -6,9 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
-    <Grid>
-
-    </Grid>
+    Background="Transparent"
+    MaxHeight="200"
+    MaxWidth="550"
+    Height="200"
+    Width="550">
+    <Border
+        Background="#EE8C8B"
+        CornerRadius="2"
+        />
 </Page>
