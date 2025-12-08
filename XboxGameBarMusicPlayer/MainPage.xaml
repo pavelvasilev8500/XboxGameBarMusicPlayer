@@ -5,14 +5,39 @@
     xmlns:local="using:XboxGameBarMusicPlayer"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="using:XboxGameBarMusicPlayer.ViewModel"
     mc:Ignorable="d"
     Background="Transparent"
     MaxHeight="200"
     MaxWidth="550"
     Height="200"
     Width="550">
+    <Page.DataContext>
+        <viewModel:MainViewModel x:Name="MViewModel"/>
+    </Page.DataContext>
     <Border
         Background="#EE8C8B"
         CornerRadius="2"
-        />
+        >
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button 
+            Grid.Column="0"
+            Content="Open Folder or file"
+            Command="{x:Bind MViewModel.OpenCommand}"
+            />
+            <Grid Grid.Column="1">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="Play"
+                            Command="{x:Bind MViewModel.PlayCommand}"
+                            Margin="10" />
+                    <Button Content="Pause" Margin="10"/>
+                    <Button Content="Stop" Margin="10" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
 </Page>
