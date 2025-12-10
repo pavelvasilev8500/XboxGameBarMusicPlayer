@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Gaming.XboxGameBar;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Foundation.Metadata;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -14,7 +16,6 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using Microsoft.Gaming.XboxGameBar;
 
 namespace XboxGameBarMusicPlayer
 {
@@ -27,7 +28,7 @@ namespace XboxGameBarMusicPlayer
             this.Suspending += OnSuspending;
         }
 
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
             if (rootFrame == null)
@@ -49,6 +50,9 @@ namespace XboxGameBarMusicPlayer
                 }
                 Window.Current.Activate();
             }
+
+
+
         }
 
         protected override void OnActivated(IActivatedEventArgs args)

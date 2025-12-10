@@ -3,13 +3,17 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.AppService;
+using Windows.Foundation.Collections;
 using Windows.Foundation.Metadata;
 using Windows.Media.Core;
+using Windows.Storage;
 using Windows.Storage.Pickers;
 
 namespace XboxGameBarMusicPlayer.ViewModel
@@ -35,12 +39,14 @@ namespace XboxGameBarMusicPlayer.ViewModel
 
         private async Task Play()
         {
-            if(ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
-                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
         }
 
         private async Task Open()
         {
+            if (ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
+            {
+                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+            }
             var fop = new FileOpenPicker();
             fop.ViewMode = PickerViewMode.Thumbnail;
             fop.SuggestedStartLocation = PickerLocationId.MusicLibrary;
