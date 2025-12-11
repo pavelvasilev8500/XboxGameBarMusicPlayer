@@ -79,6 +79,7 @@ namespace XboxGameBarMusicPlayer.ViewModel
             var query = folder.CreateItemQuery();
             query.ContentsChanged += Query_ContentsChanged;
             Init.Player.IsLoopingEnabled = false;
+            Init.Player.MediaEnded += Player_MediaEnded;
             PlayPauseCommand = new RelayCommand(PlayPause);
             RepeateCommand = new RelayCommand(Repeate);
             NextTrackCommand = new RelayCommand(Next);
@@ -86,6 +87,7 @@ namespace XboxGameBarMusicPlayer.ViewModel
             Scan();
         }
 
+        private void Player_MediaEnded(Windows.Media.Playback.MediaPlayer sender, object args) => Next();
         private void Query_ContentsChanged(IStorageQueryResultBase sender, object args)
         {
             Playlist.Clear();
