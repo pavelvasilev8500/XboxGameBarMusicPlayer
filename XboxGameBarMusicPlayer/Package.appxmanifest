@@ -55,12 +55,12 @@
 							<ActivateAfterInstall>false</ActivateAfterInstall>
 							<Window>
 								<Size>
-									<Height>200</Height>
-									<Width>550</Width>
-									<MinHeight>200</MinHeight>
-									<MinWidth>550</MinWidth>
-									<MaxHeight>200</MaxHeight>
-									<MaxWidth>550</MaxWidth>
+									<Height>600</Height>
+									<Width>400</Width>
+									<MinHeight>600</MinHeight>
+									<MinWidth>400</MinWidth>
+									<MaxHeight>600</MaxHeight>
+									<MaxWidth>400</MaxWidth>
 								</Size>
 								<ResizeSupported>
 									<Horizontal>false</Horizontal>
@@ -112,6 +112,5 @@
   </Extensions>
 
   <Capabilities>
-    <Capability Name="internetClient" />
-  </Capabilities>
+    <uap:Capability Name="musicLibrary"/></Capabilities>
 </Package>

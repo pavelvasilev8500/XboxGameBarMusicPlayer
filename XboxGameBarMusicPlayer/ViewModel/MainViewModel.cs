@@ -1,61 +1,114 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO.Pipes;
-using System.Linq;
-using System.Text;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.AppService;
-using Windows.Foundation.Collections;
-using Windows.Foundation.Metadata;
 using Windows.Media.Core;
 using Windows.Storage;
-using Windows.Storage.Pickers;
 
 namespace XboxGameBarMusicPlayer.ViewModel
 {
     internal class MainViewModel : ObservableObject
     {
+        private ObservableCollection<PlaylistModel> _playlist = new ObservableCollection<PlaylistModel>();
+        private int _selectedItem = -1;
+        private bool _isPlay = false;
+        private bool _isFirst = true;
 
-        public IAsyncRelayCommand OpenCommand { get; private set; }
-        public IAsyncRelayCommand PlayCommand { get; private set; }
+        public RelayCommand PlayPauseCommand { get; private set; }
+        public RelayCommand RepeateCommand { get; private set;  }
+        public RelayCommand NextTrackCommand { get; private set; }
+        public RelayCommand PreviuseTrackCommand { get; private set; }
 
-        private MediaSource _musicPath;
-        public MediaSource MusicPath
+        public ObservableCollection<PlaylistModel> Playlist
         {
-            get => _musicPath;
-            private set => SetProperty(ref _musicPath, value);
+            get => _playlist;
+            set => SetProperty(ref _playlist, value);
+        }
+
+        public int SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                int trackCount = _playlist.Count - 1;
+                if (_isFirst)
+                {
+                    SetProperty(ref _selectedItem, value);
+                    _isFirst = false;
+                }
+                else
+                {
+                    if (value > trackCount)
+                        value = 0;
+                    else if (value < 0)
+                        value = trackCount;
+                    SetProperty(ref _selectedItem, value);
+                }
+                InitTrack();
+            }
         }
 
         public MainViewModel()
         {
-            OpenCommand = new AsyncRelayCommand(Open);
-            PlayCommand = new AsyncRelayCommand(Play);
+            Init.Player.IsLoopingEnabled = false;
+            PlayPauseCommand = new RelayCommand(PlayPause);
+            RepeateCommand = new RelayCommand(Repeate);
+            NextTrackCommand = new RelayCommand(Next);
+            PreviuseTrackCommand = new RelayCommand(Previuse);
+            Scan();
         }
 
-        private async Task Play()
+        private void InitTrack()
         {
+            Init.Player.Pause();
+            Init.Player.PlaybackSession.Position = TimeSpan.Zero;
+            Init.Player.Source = null;
+            var source = MediaSource.CreateFromStorageFile(Playlist[SelectedItem].Track);
+            Init.Player.Source = source;
+            _isPlay = true;
+            PlayerControl.Play();
         }
 
-        private async Task Open()
+        private void PlayPause()
         {
-            if (ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
+            if (_isPlay)
+                PlayerControl.Pause();
+            else
+                PlayerControl.Play();
+            _isPlay = !_isPlay;
+        }
+
+        private void Repeate() => PlayerControl.Repeate();
+
+        private void Next() => SelectedItem++;
+
+        private void Previuse() => SelectedItem--;
+
+        private async void Scan() => await ScanFolders(KnownFolders.MusicLibrary);
+
+        private async Task ScanFolders(StorageFolder folder)
+        {
+            await AddFiles(folder);
+            var subfolders = await folder.GetFoldersAsync();
+            foreach (var subfolder in subfolders)
             {
-                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+                await ScanFolders(subfolder);
             }
-            var fop = new FileOpenPicker();
-            fop.ViewMode = PickerViewMode.Thumbnail;
-            fop.SuggestedStartLocation = PickerLocationId.MusicLibrary;
-            fop.CommitButtonText = "Open";
-            fop.FileTypeFilter.Add(".mp3");
-            var file = await fop.PickSingleFileAsync();
-            if (file != null)
+        }
+
+        private async Task AddFiles(StorageFolder folder)
+        {
+            var files = await folder.GetFilesAsync();
+            foreach (var file in files)
             {
-                MusicPath = MediaSource.CreateFromStorageFile(file);
+                if (file.FileType.Contains("mp3"))
+                    _playlist.Add(new PlaylistModel
+                    {
+                        Track = file,
+                        Title = file.DisplayName,
+                        Path = file.Path
+                    });
             }
         }
     }
