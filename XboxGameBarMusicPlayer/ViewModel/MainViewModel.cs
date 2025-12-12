@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using Windows.Media.Core;
 using Windows.Storage;
 using Windows.Storage.Search;
+using Windows.System;
+using Windows.UI.Xaml.Controls;
 
 namespace XboxGameBarMusicPlayer.ViewModel
 {
@@ -75,11 +78,9 @@ namespace XboxGameBarMusicPlayer.ViewModel
 
         public MainViewModel()
         {
-            var folder = KnownFolders.MusicLibrary;
-            var query = folder.CreateItemQuery();
-            query.ContentsChanged += Query_ContentsChanged;
+            ScanFolders();
             Init.Player.IsLoopingEnabled = false;
-            Init.Player.MediaEnded += Player_MediaEnded;
+            Init.Player.MediaEnded += Player_MediaEndedAsync;
             PlayPauseCommand = new RelayCommand(PlayPause);
             RepeateCommand = new RelayCommand(Repeate);
             NextTrackCommand = new RelayCommand(Next);
@@ -87,12 +88,35 @@ namespace XboxGameBarMusicPlayer.ViewModel
             Scan();
         }
 
-        private void Player_MediaEnded(Windows.Media.Playback.MediaPlayer sender, object args) => Next();
-        private void Query_ContentsChanged(IStorageQueryResultBase sender, object args)
+        private async void ScanFolders()
         {
-            Playlist.Clear();
-            Scan();
+            var folder = KnownFolders.MusicLibrary;
+            var query = folder.CreateItemQueryWithOptions(
+                new Windows.Storage.Search.QueryOptions(
+                    Windows.Storage.Search.CommonFileQuery.DefaultQuery, new List<string>() { "*" }));
+            query.ContentsChanged += QueryContentsChanged;
+            await query.GetItemsAsync();
         }
+
+        private void QueryContentsChanged(IStorageQueryResultBase sender, object args)
+        {
+            MakeInUI(() =>
+            {
+                Playlist.Clear();
+                Scan();
+            });
+        }
+
+        private void Player_MediaEndedAsync(Windows.Media.Playback.MediaPlayer sender, object args)
+        {
+            MakeInUI(Next);
+        }
+
+        private async void MakeInUI(Action action)
+        {
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,() => { action(); });
+        }
+
 
         private void InitTrack()
         {
@@ -160,7 +184,10 @@ namespace XboxGameBarMusicPlayer.ViewModel
                     });
                     _trackId++;
                 }
-            }            
+            }
+            //var sorted = Playlist.OrderBy(t => t, Comparer<PlaylistModel>.Create((t1, t2) => t1.Title.CompareTo(t2.Title)));
+            //foreach(var t in sorted)
+            //    Playlist.Add(t);
         }
     }
 }
