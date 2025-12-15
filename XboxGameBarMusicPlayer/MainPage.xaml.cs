@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Media.Devices;
+using Windows.Media.Playback;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -12,18 +14,20 @@ namespace XboxGameBarMusicPlayer
 {
     public sealed partial class MainPage : Page
     {
-        //private bool _isFirst = true;
+        private DispatcherTimer _timer = new DispatcherTimer();
+        private bool _isSeeking = false;
         public MainPage()
         {
             this.InitializeComponent();
+            _timer.Interval = TimeSpan.FromMilliseconds(200);
+            _timer.Tick += _timer_Tick;
         }
 
-        //private void StackPanel_GotFocus(object sender, Windows.UI.Xaml.RoutedEventArgs e)
-        //{
-        //    if (_isFirst)
-        //        List.Focus(Windows.UI.Xaml.FocusState.Programmatic);
-        //    _isFirst = false;
-        //}
+        private void _timer_Tick(object sender, object e)
+        {
+            if (!_isSeeking)
+                (DataContext as MainViewModel).Position = MediaPlayerIUElement.Position.TotalSeconds;
+        }
 
         private void AutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
         {
@@ -47,22 +51,42 @@ namespace XboxGameBarMusicPlayer
         {
             var dis = this.Dispatcher;
             var state = MediaPlayerIUElement.CurrentState;
-            bool isEnd = false;
             switch (state)
             {
                 case MediaElementState.Opening:
-                    isEnd = false;
                     break;
                 case MediaElementState.Buffering:
                     break;
                 case MediaElementState.Playing:
+                    (DataContext as MainViewModel).TrackSize = MediaPlayerIUElement.NaturalDuration.TimeSpan.TotalSeconds;
+                    _timer.Start();
                     break;
                 case MediaElementState.Paused:
                     break;
                 case MediaElementState.Stopped:
-                    isEnd = true;
+                    _timer.Stop();
                     break;
             }
+        }
+
+        private void Slider_ManipulationStarted(object sender, Windows.UI.Xaml.Input.ManipulationStartedRoutedEventArgs e) => _isSeeking = true;
+
+        private void Slider_ManipulationCompleted(object sender, Windows.UI.Xaml.Input.ManipulationCompletedRoutedEventArgs e)
+        {
+            _isSeeking = false;
+            MediaPlayerIUElement.Position = TimeSpan.FromSeconds((DataContext as MainViewModel).Position);
+        }
+
+        private void Slider_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
+        {
+            _isSeeking = true;
+            var slider = (Slider)sender;
+            var point = e.GetPosition(slider);
+            var ratio = point.X / slider.ActualWidth;
+            var newValue = slider.Minimum + ratio * (slider.Maximum - slider.Minimum);
+            (DataContext as MainViewModel).Position = newValue;
+            MediaPlayerIUElement.Position = TimeSpan.FromSeconds((DataContext as MainViewModel).Position);
+            _isSeeking = false;
         }
     }
 }

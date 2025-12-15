@@ -1,20 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Windows.Media.Core;
-using Windows.Media.Playback;
 using Windows.Storage;
-using Windows.Storage.Search;
-using Windows.System;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace XboxGameBarMusicPlayer.ViewModel
@@ -30,8 +20,6 @@ namespace XboxGameBarMusicPlayer.ViewModel
         private double _position;
         private double _trackSize;
         private int _trackId { get; set; } = 0;
-        private DispatcherTimer _timer = new DispatcherTimer();
-
 
         public MediaElement Player { get; set; }
 
@@ -123,7 +111,6 @@ namespace XboxGameBarMusicPlayer.ViewModel
             Player.Pause();
             Player.Position = TimeSpan.Zero;
             Player.Source = null;
-            //var source = MediaSource.CreateFromStorageFile(Playlist[SelectedItem].Track);
             Player.Source = new Uri($@"{Playlist[SelectedItem].Path}");
             _isPlay = true;
             Player.Play();
@@ -135,7 +122,6 @@ namespace XboxGameBarMusicPlayer.ViewModel
             Player.Pause();
             Player.Position = TimeSpan.Zero;
             Player.Source = null;
-            //var source = MediaSource.CreateFromStorageFile(file.Track);
             Player.Source = new Uri($@"{file.Path}");
             SelectedItem = file.TrackId;
             _isPlay = true;

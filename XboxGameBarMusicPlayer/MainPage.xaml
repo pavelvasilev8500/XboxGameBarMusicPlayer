@@ -85,7 +85,11 @@
                         Margin="5"
                         Minimum="0"
                         Maximum="{x:Bind MViewModel.TrackSize, Mode=TwoWay}"
-                        Value="{x:Bind MViewModel.Position, Mode=TwoWay}"/>
+                        Value="{x:Bind MViewModel.Position, Mode=TwoWay}"
+                        ManipulationMode="TranslateX"
+                        ManipulationStarted="Slider_ManipulationStarted"
+                        ManipulationCompleted="Slider_ManipulationCompleted"
+                        Tapped="Slider_Tapped"/>
                 <MediaElement
                 x:Name="MediaPlayerIUElement"
                 IsLooping="False"
