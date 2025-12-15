@@ -6,38 +6,125 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModel="using:XboxGameBarMusicPlayer.ViewModel"
+    xmlns:controls="using:XboxGameBarMusicPlayer.Controls"
     mc:Ignorable="d"
     Background="Transparent"
-    MaxHeight="200"
-    MaxWidth="550"
-    Height="200"
-    Width="550">
+    MaxHeight="600"
+    MaxWidth="400"
+    Height="600"
+    Width="400">
+
     <Page.DataContext>
         <viewModel:MainViewModel x:Name="MViewModel"/>
     </Page.DataContext>
-    <Border
-        Background="#EE8C8B"
-        CornerRadius="2"
-        >
+
+    <Border Background="#2C2C2C"
+            BorderThickness="3"
+            BorderBrush="#00684A"
+            CornerRadius="0, 0, 16, 16">
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button 
-            Grid.Column="0"
-            Content="Open Folder or file"
-            Command="{x:Bind MViewModel.OpenCommand}"
-            />
-            <Grid Grid.Column="1">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Content="Play"
-                            Command="{x:Bind MViewModel.PlayCommand}"
-                            Margin="10" />
-                    <Button Content="Pause" Margin="10"/>
-                    <Button Content="Stop" Margin="10" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="450"/>
+                <RowDefinition Height="100"/>
+            </Grid.RowDefinitions>
+            <AutoSuggestBox Grid.Row="0"
+                            QueryIcon="Find"
+                            Width="300"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind MViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            ItemsSource="{x:Bind MViewModel.Searchlist, Mode=TwoWay}"
+                            SuggestionChosen="AutoSuggestBox_SuggestionChosen"
+                >
+                <AutoSuggestBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:PlaylistModel">
+                        <TextBlock Text="{x:Bind Title}"/>
+                    </DataTemplate>
+                </AutoSuggestBox.ItemTemplate>
+                </AutoSuggestBox>
+                <ListBox Name="List"
+                     Grid.Row="1" 
+                     Background="Transparent"
+                     ItemsSource="{x:Bind MViewModel.Playlist, Mode=TwoWay}"
+                     SelectedIndex="{x:Bind MViewModel.SelectedItem, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:PlaylistModel">
+                        <TextBlock Text="{x:Bind Title}"
+                                   Foreground="White"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" 
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <Button Content="Random"
+                            Margin="10"/>
+                    <Button Content="Previus"
+                            Command="{x:Bind MViewModel.PreviuseTrackCommand}"
+                            Margin="10"/>
+                    <Button Content="Play/Pause"
+                            Command="{x:Bind MViewModel.PlayPauseCommand}"
+                            Margin="10"/>
+                    <Button Content="Next"
+                            Command="{x:Bind MViewModel.NextTrackCommand}"
+                            Margin="10"/>
+                    <Button Content="Repeat"
+                            Command="{x:Bind MViewModel.RepeateCommand}"
+                            Margin="10"/>
                 </StackPanel>
+                <Slider Grid.Row="1"
+                        VerticalAlignment="Center"
+                        Margin="5"
+                        Minimum="0"
+                        Maximum="100"/>
             </Grid>
         </Grid>
     </Border>
 </Page>
+
+<!-- 
+    <controls:ProgressRingControl/>
+   Progress="{x:Bind ViewModel.ProgressValue, Mode=OneWay}"
+    InnerImageSource="Assets/play.png"
+    RingTapped="{x:Bind ViewModel.RingTappedCommand}" 
+
+    public class PlayerViewModel : ObservableObject
+{
+    private double _progressValue;
+    public double ProgressValue
+    {
+        get =>_progressValue;
+        set => SetProperty(ref _progressValue, value);
+    }
+
+    public ICommand RingTappedCommand { get; }
+
+    public PlayerViewModel()
+    {
+        RingTappedCommand = new RelayCommand(() =>
+        {
+            Debug.WriteLine("Ring tapped!");
+        });
+
+        // Пример: анимация
+        UpdateProgress();
+    }
+
+    private async void UpdateProgress()
+    {
+        for (int i = 0; i
+    <= 100; i++)
+        {
+            ProgressValue = i;
+            await Task.Delay(50);
+        }
+    }
+}
+
+-->
