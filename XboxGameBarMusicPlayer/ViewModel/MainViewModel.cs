@@ -3,13 +3,18 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.Core;
+using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Search;
 using Windows.System;
+using Windows.UI.Core;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace XboxGameBarMusicPlayer.ViewModel
@@ -20,10 +25,15 @@ namespace XboxGameBarMusicPlayer.ViewModel
         private ObservableCollection<PlaylistModel> _searchlist = new ObservableCollection<PlaylistModel>();
         private int _selectedItem = -1;
         private string _searchQuery = string.Empty;
-        private string _chosenItem = string.Empty;
         private bool _isPlay = false;
         private bool _isFirst = true;
+        private double _position;
+        private double _trackSize;
         private int _trackId { get; set; } = 0;
+        private DispatcherTimer _timer = new DispatcherTimer();
+
+
+        public MediaElement Player { get; set; }
 
         public RelayCommand PlayPauseCommand { get; private set; }
         public RelayCommand RepeateCommand { get; private set;  }
@@ -76,11 +86,21 @@ namespace XboxGameBarMusicPlayer.ViewModel
             }
         }
 
+        public double Position
+        {
+            get => _position;
+            set => SetProperty(ref _position, value);
+        }
+
+        public double TrackSize
+        {
+            get { return _trackSize; }
+            set { SetProperty(ref _trackSize, value); }
+        }
+
         public MainViewModel()
         {
-            ScanFolders();
-            Init.Player.IsLoopingEnabled = false;
-            Init.Player.MediaEnded += Player_MediaEndedAsync;
+            //ScanFolders();
             PlayPauseCommand = new RelayCommand(PlayPause);
             RepeateCommand = new RelayCommand(Repeate);
             NextTrackCommand = new RelayCommand(Next);
@@ -88,69 +108,54 @@ namespace XboxGameBarMusicPlayer.ViewModel
             Scan();
         }
 
-        private async void ScanFolders()
-        {
-            var folder = KnownFolders.MusicLibrary;
-            var query = folder.CreateItemQueryWithOptions(
-                new Windows.Storage.Search.QueryOptions(
-                    Windows.Storage.Search.CommonFileQuery.DefaultQuery, new List<string>() { "*" }));
-            query.ContentsChanged += QueryContentsChanged;
-            await query.GetItemsAsync();
-        }
-
-        private void QueryContentsChanged(IStorageQueryResultBase sender, object args)
-        {
-            MakeInUI(() =>
-            {
-                Playlist.Clear();
-                Scan();
-            });
-        }
-
-        private void Player_MediaEndedAsync(Windows.Media.Playback.MediaPlayer sender, object args)
-        {
-            MakeInUI(Next);
-        }
-
-        private async void MakeInUI(Action action)
-        {
-            await Windows.ApplicationModel.Core.CoreApplication.MainView.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,() => { action(); });
-        }
-
+        //private async void ScanFolders()
+        //{
+        //    var folder = KnownFolders.MusicLibrary;
+        //    var query = folder.CreateItemQueryWithOptions(
+        //        new Windows.Storage.Search.QueryOptions(
+        //            Windows.Storage.Search.CommonFileQuery.DefaultQuery, new List<string>() { "*" }));
+        //    query.ContentsChanged += QueryContentsChanged;
+        //    await query.GetItemsAsync();
+        //}
 
         private void InitTrack()
         {
-            Init.Player.Pause();
-            Init.Player.PlaybackSession.Position = TimeSpan.Zero;
-            Init.Player.Source = null;
-            var source = MediaSource.CreateFromStorageFile(Playlist[SelectedItem].Track);
-            Init.Player.Source = source;
+            Player.Pause();
+            Player.Position = TimeSpan.Zero;
+            Player.Source = null;
+            //var source = MediaSource.CreateFromStorageFile(Playlist[SelectedItem].Track);
+            Player.Source = new Uri($@"{Playlist[SelectedItem].Path}");
             _isPlay = true;
-            PlayerControl.Play();
+            Player.Play();
         }
+
 
         public void InitTrack(PlaylistModel file)
         {
-            Init.Player.Pause();
-            Init.Player.PlaybackSession.Position = TimeSpan.Zero;
-            Init.Player.Source = null;
-            var source = MediaSource.CreateFromStorageFile(file.Track);
-            Init.Player.Source = source;
+            Player.Pause();
+            Player.Position = TimeSpan.Zero;
+            Player.Source = null;
+            //var source = MediaSource.CreateFromStorageFile(file.Track);
+            Player.Source = new Uri($@"{file.Path}");
             SelectedItem = file.TrackId;
             _isPlay = true;
-            PlayerControl.Play();
+            Player.Play();
         }
 
         private void PlayPause()
         {
             if (_isPlay)
-                PlayerControl.Pause();
+                Player.Pause();
             else
-                PlayerControl.Play();
+                Player.Play();
             _isPlay = !_isPlay;
         }
 
-        private void Repeate() => PlayerControl.Repeate();
+        private void Repeate()
+        {
+            Player.IsLooping = !Player.IsLooping;
+        }
+
 
         private void Next() => SelectedItem++;
 
@@ -185,9 +190,6 @@ namespace XboxGameBarMusicPlayer.ViewModel
                     _trackId++;
                 }
             }
-            //var sorted = Playlist.OrderBy(t => t, Comparer<PlaylistModel>.Create((t1, t2) => t1.Title.CompareTo(t2.Title)));
-            //foreach(var t in sorted)
-            //    Playlist.Add(t);
         }
     }
 }

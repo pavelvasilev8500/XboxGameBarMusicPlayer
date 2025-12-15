@@ -42,8 +42,8 @@
                         <TextBlock Text="{x:Bind Title}"/>
                     </DataTemplate>
                 </AutoSuggestBox.ItemTemplate>
-                </AutoSuggestBox>
-                <ListBox Name="List"
+            </AutoSuggestBox>
+            <ListBox Name="List"
                      Grid.Row="1" 
                      Background="Transparent"
                      ItemsSource="{x:Bind MViewModel.Playlist, Mode=TwoWay}"
@@ -71,18 +71,29 @@
                     <Button Content="Play/Pause"
                             Command="{x:Bind MViewModel.PlayPauseCommand}"
                             Margin="10"/>
-                    <Button Content="Next"
+                    <Button Name="NextButton"
+                            Content="Next"
                             Command="{x:Bind MViewModel.NextTrackCommand}"
                             Margin="10"/>
                     <Button Content="Repeat"
                             Command="{x:Bind MViewModel.RepeateCommand}"
                             Margin="10"/>
                 </StackPanel>
-                <Slider Grid.Row="1"
+                <Slider x:Name="Slider"
+                        Grid.Row="1"
                         VerticalAlignment="Center"
                         Margin="5"
                         Minimum="0"
-                        Maximum="100"/>
+                        Maximum="{x:Bind MViewModel.TrackSize, Mode=TwoWay}"
+                        Value="{x:Bind MViewModel.Position, Mode=TwoWay}"/>
+                <MediaElement
+                x:Name="MediaPlayerIUElement"
+                IsLooping="False"
+                MediaEnded="MediaPlayerIUElement_MediaEnded"
+                CurrentStateChanged="MediaPlayerIUElement_CurrentStateChanged"
+                AreTransportControlsEnabled="False"
+                Loaded="MediaPlayerElement_Loaded">
+                </MediaElement>
             </Grid>
         </Grid>
     </Border>
