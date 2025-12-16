@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModel="using:XboxGameBarMusicPlayer.ViewModel"
-    xmlns:controls="using:XboxGameBarMusicPlayer.Controls"
     mc:Ignorable="d"
     Background="Transparent"
     MaxHeight="600"
@@ -94,6 +93,7 @@
                 x:Name="MediaPlayerIUElement"
                 IsLooping="False"
                 MediaEnded="MediaPlayerIUElement_MediaEnded"
+                MediaFailed="MediaPlayerIUElement_MediaFailed"
                 CurrentStateChanged="MediaPlayerIUElement_CurrentStateChanged"
                 AreTransportControlsEnabled="False"
                 Loaded="MediaPlayerElement_Loaded">

@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using Windows.Media.Devices;
-using Windows.Media.Playback;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using XboxGameBarMusicPlayer.ViewModel;
 
 namespace XboxGameBarMusicPlayer
@@ -87,6 +81,11 @@ namespace XboxGameBarMusicPlayer
             (DataContext as MainViewModel).Position = newValue;
             MediaPlayerIUElement.Position = TimeSpan.FromSeconds((DataContext as MainViewModel).Position);
             _isSeeking = false;
+        }
+
+        private void MediaPlayerIUElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            var err = e.ErrorMessage;
         }
     }
 }
