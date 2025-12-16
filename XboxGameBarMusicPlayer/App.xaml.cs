@@ -26,7 +26,6 @@ namespace XboxGameBarMusicPlayer
                 rootFrame.NavigationFailed += OnNavigationFailed;
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
-                    //TODO: Загрузить состояние из ранее приостановленного приложения
                 }
                 Window.Current.Content = rootFrame;
             }
@@ -87,7 +86,6 @@ namespace XboxGameBarMusicPlayer
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: Сохранить состояние приложения и остановить все фоновые операции
             deferral.Complete();
         }
     }

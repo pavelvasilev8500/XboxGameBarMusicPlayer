@@ -20,26 +20,21 @@ namespace XboxGameBarMusicPlayer.ViewModel
         private double _position;
         private double _trackSize;
         private int _trackId { get; set; } = 0;
-
         public MediaElement Player { get; set; }
-
         public RelayCommand PlayPauseCommand { get; private set; }
         public RelayCommand RepeateCommand { get; private set;  }
         public RelayCommand NextTrackCommand { get; private set; }
         public RelayCommand PreviuseTrackCommand { get; private set; }
-
         public ObservableCollection<PlaylistModel> Playlist
         {
             get => _playlist;
             set => SetProperty(ref _playlist, value);
         }
-
         public ObservableCollection<PlaylistModel> Searchlist
         {
             get => _searchlist;
             set => SetProperty(ref _searchlist, value);
         }
-
         public int SelectedItem
         {
             get => _selectedItem;
@@ -58,10 +53,9 @@ namespace XboxGameBarMusicPlayer.ViewModel
                         value = trackCount;
                 }
                 SetProperty(ref _selectedItem, value);
-                InitTrack();
+                InitTrack(null);
             }
         }
-
         public string SearchQuery
         {
             get => _searchQuery;
@@ -73,13 +67,11 @@ namespace XboxGameBarMusicPlayer.ViewModel
                     Searchlist = new ObservableCollection<PlaylistModel>(Playlist.Where(t => t.Title.ToLower().Contains(value)));
             }
         }
-
         public double Position
         {
             get => _position;
             set => SetProperty(ref _position, value);
         }
-
         public double TrackSize
         {
             get { return _trackSize; }
@@ -106,24 +98,23 @@ namespace XboxGameBarMusicPlayer.ViewModel
         //    await query.GetItemsAsync();
         //}
 
-        private void InitTrack()
+        public async void InitTrack(PlaylistModel file)
         {
             Player.Pause();
             Player.Position = TimeSpan.Zero;
             Player.Source = null;
-            Player.Source = new Uri($@"{Playlist[SelectedItem].Path}");
-            _isPlay = true;
-            Player.Play();
-        }
-
-
-        public void InitTrack(PlaylistModel file)
-        {
-            Player.Pause();
-            Player.Position = TimeSpan.Zero;
-            Player.Source = null;
-            Player.Source = new Uri($@"{file.Path}");
-            SelectedItem = file.TrackId;
+            StorageFile storageFile = null;
+            if(file == null)
+            {
+                storageFile = await StorageFile.GetFileFromPathAsync(Playlist[SelectedItem].Path);
+                Player.SetSource(await storageFile.OpenAsync(FileAccessMode.Read), Playlist[SelectedItem].Track.ContentType);
+            }
+            else
+            {
+                storageFile = await StorageFile.GetFileFromPathAsync(file.Path);
+                Player.SetSource(await storageFile.OpenAsync(FileAccessMode.Read), file.Track.ContentType);
+                SelectedItem = file.TrackId;
+            }
             _isPlay = true;
             Player.Play();
         }
@@ -141,7 +132,6 @@ namespace XboxGameBarMusicPlayer.ViewModel
         {
             Player.IsLooping = !Player.IsLooping;
         }
-
 
         private void Next() => SelectedItem++;
 
